@@ -3,6 +3,9 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="icon" href="favicon-32.png" type="image/png" sizes="32x32">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
 <title>Mississippi Senate Count Tracker</title>
 <meta name="description" content="Unofficial forecast of the uncalled 2026 Mississippi U.S. Senate race, based on the ballots still to be counted.">
 <meta property="og:title" content="Mississippi Senate Count Tracker">
@@ -183,7 +186,7 @@ button:focus-visible,select:focus-visible,input:focus-visible,th[data-k]:focus-v
     <a href="https://www.sos.ms.gov/elections-voting">Mississippi Secretary of State</a> ·
     <a href="https://mississippitoday.org/">Mississippi Today</a> ·
     <a href="https://www.mississippifreepress.org/">Mississippi Free Press</a><br>
-    <span id="pagever">Page version 61aaa17e</span>
+    <span id="pagever">Page version d1cb3d81</span>
   </footer>
 </div>
 
@@ -200,7 +203,7 @@ function showTip(e, html){ tip.innerHTML = html; tip.style.opacity = 1;
 function hideTip(){ tip.style.opacity = 0; }
 const widthOf = svg => Math.max(280, svg.node().getBoundingClientRect().width || (svg.node().parentNode.clientWidth - 40));
 
-const PAGE_VERSION = "61aaa17e";
+const PAGE_VERSION = "d1cb3d81";
 fetch("data.json?" + Date.now(), {cache: "no-store"}).then(r => r.json()).then(D => {
   // Browsers can hold an old copy of this page. data.json is always fresh, so if it names a newer page, load that once.
   if (D.page_version && D.page_version !== PAGE_VERSION) {
