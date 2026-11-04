@@ -7,7 +7,9 @@
 <meta name="description" content="Unofficial forecast of the uncalled 2026 Mississippi U.S. Senate race, based on the ballots still to be counted.">
 <meta property="og:title" content="Mississippi Senate Count Tracker">
 <meta property="og:description" content="Who is likely ahead once every ballot is counted. Updated twice a day.">
-<meta property="og:image" content="share.png">
+<meta property="og:image" content="https://pfenelon804.github.io/ms-senate-2026/share.png">
+<meta property="og:url" content="https://pfenelon804.github.io/ms-senate-2026/">
+<meta http-equiv="Cache-Control" content="no-cache, must-revalidate">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
@@ -180,7 +182,8 @@ button:focus-visible,select:focus-visible,input:focus-visible,th[data-k]:focus-v
     Live results: <a href="https://www.nbcnews.com/politics/2026-elections/mississippi-senate-results">NBC News (AP)</a> ·
     <a href="https://www.sos.ms.gov/elections-voting">Mississippi Secretary of State</a> ·
     <a href="https://mississippitoday.org/">Mississippi Today</a> ·
-    <a href="https://www.mississippifreepress.org/">Mississippi Free Press</a>
+    <a href="https://www.mississippifreepress.org/">Mississippi Free Press</a><br>
+    <span id="pagever">Page version 61aaa17e</span>
   </footer>
 </div>
 
@@ -197,7 +200,14 @@ function showTip(e, html){ tip.innerHTML = html; tip.style.opacity = 1;
 function hideTip(){ tip.style.opacity = 0; }
 const widthOf = svg => Math.max(280, svg.node().getBoundingClientRect().width || (svg.node().parentNode.clientWidth - 40));
 
-fetch("data.json?" + Date.now()).then(r => r.json()).then(D => {
+const PAGE_VERSION = "61aaa17e";
+fetch("data.json?" + Date.now(), {cache: "no-store"}).then(r => r.json()).then(D => {
+  // Browsers can hold an old copy of this page. data.json is always fresh, so if it names a newer page, load that once.
+  if (D.page_version && D.page_version !== PAGE_VERSION) {
+    const key = "reloaded-" + D.page_version;
+    let tried = false; try { tried = sessionStorage.getItem(key); sessionStorage.setItem(key, "1"); } catch (e) {}
+    if (!tried) { location.replace(location.pathname + "?v=" + D.page_version + location.hash); return; }
+  }
   const p = D.p_colom_wins, when = new Date(D.run_ct);
   const hrs = (Date.now() - when) / 36e5, ago = hrs < 1 ? "less than an hour ago" : hrs < 24 ? Math.round(hrs) + (Math.round(hrs) === 1 ? " hour ago" : " hours ago") : Math.round(hrs / 24) + " days ago";
   const st = document.getElementById("stamp");
