@@ -186,7 +186,7 @@ button:focus-visible,select:focus-visible,input:focus-visible,th[data-k]:focus-v
     <a href="https://www.sos.ms.gov/elections-voting">Mississippi Secretary of State</a> ·
     <a href="https://mississippitoday.org/">Mississippi Today</a> ·
     <a href="https://www.mississippifreepress.org/">Mississippi Free Press</a><br>
-    <span id="pagever">Page version d1cb3d81</span>
+    <span id="pagever">Page version d7b50aca</span>
   </footer>
 </div>
 
@@ -203,7 +203,7 @@ function showTip(e, html){ tip.innerHTML = html; tip.style.opacity = 1;
 function hideTip(){ tip.style.opacity = 0; }
 const widthOf = svg => Math.max(280, svg.node().getBoundingClientRect().width || (svg.node().parentNode.clientWidth - 40));
 
-const PAGE_VERSION = "d1cb3d81";
+const PAGE_VERSION = "d7b50aca";
 fetch("data.json?" + Date.now(), {cache: "no-store"}).then(r => r.json()).then(D => {
   // Browsers can hold an old copy of this page. data.json is always fresh, so if it names a newer page, load that once.
   if (D.page_version && D.page_version !== PAGE_VERSION) {
@@ -214,8 +214,8 @@ fetch("data.json?" + Date.now(), {cache: "no-store"}).then(r => r.json()).then(D
   const p = D.p_colom_wins, when = new Date(D.run_ct);
   const hrs = (Date.now() - when) / 36e5, ago = hrs < 1 ? "less than an hour ago" : hrs < 24 ? Math.round(hrs) + (Math.round(hrs) === 1 ? " hour ago" : " hours ago") : Math.round(hrs / 24) + " days ago";
   const st = document.getElementById("stamp");
-  st.textContent = "Updated " + ago + " (" + when.toLocaleString("en-US", {weekday:"short", month:"short", day:"numeric", hour:"numeric", minute:"2-digit", timeZone:"America/Chicago"}) + " CT). Refreshes about 8 AM and 5 PM CT.";
-  if (hrs > 14 && !D.winner) { st.textContent += " This update is older than usual."; st.classList.add("stale"); }
+  st.textContent = "Updated " + ago + " (" + when.toLocaleString("en-US", {weekday:"short", month:"short", day:"numeric", hour:"numeric", minute:"2-digit", timeZone:"America/Chicago"}) + " CT). Refreshes about 8 AM, noon and 5 PM CT.";
+  if (hrs > 18 && !D.winner) { st.textContent += " This update is older than usual."; st.classList.add("stale"); }
   const sh = document.getElementById("share"), url = "https://tinyurl.com/ms-senate-2026";
   sh.onclick = async () => {
     try { if (navigator.share) { await navigator.share({title:"Mississippi Senate count tracker", text:"Who is likely to win once every ballot is counted", url}); return; } } catch (e) { if (e.name === "AbortError") return; }
