@@ -66,9 +66,11 @@ th[data-k]{cursor:pointer;user-select:none;white-space:nowrap}
 th[data-k].on::after{content:" \25BE"} th[data-k].on.asc::after{content:" \25B4"}
 #tbl tbody tr{cursor:pointer} #tbl tbody tr:hover td{background:var(--page)}
 .cd-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-top:12px}
-.cd-row{display:flex;align-items:center;gap:10px;margin:6px 0;font-size:14px}
-.cd-row .nm{width:150px;color:var(--ink2)} .cd-row .track{flex:1;height:12px;background:var(--page);border-radius:6px;overflow:hidden}
-.cd-row .fill{height:100%;border-radius:0 4px 4px 0} .cd-row .val{width:120px;text-align:right}
+.cd-row{display:grid;grid-template-columns:1fr auto;gap:4px 10px;margin:10px 0;font-size:14px}
+.cd-row .nm{color:var(--ink2)} .cd-row .val{text-align:right}
+.cd-row .track{grid-column:1 / -1;height:12px;background:var(--page);border-radius:6px;overflow:hidden}
+.cd-row .fill{height:100%;border-radius:0 4px 4px 0}
+svg text.halo{paint-order:stroke;stroke:var(--surface);stroke-width:3px;stroke-linejoin:round}
 #map path,#map circle,#net rect{cursor:pointer}
 #map path.sel{stroke:var(--ink);stroke-width:2.5}
 </style>
