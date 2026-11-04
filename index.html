@@ -34,7 +34,8 @@ header p{margin:0;color:var(--ink2)}
 .card{background:var(--surface);border:1px solid var(--card-border);border-radius:12px;padding:20px;margin-top:16px}
 .card h2{font-size:18px;margin:0 0 4px;font-weight:600}
 .card .sub{color:var(--ink2);font-size:14px;margin:0 0 14px}
-.odds{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;flex-wrap:wrap}
+.odds{display:flex;justify-content:space-between;align-items:flex-end;gap:12px}
+@media (max-width:480px){.odds .pct{font-size:32px} .odds .who{font-size:13px} header h1{font-size:24px}}
 .odds .who{font-size:14px;color:var(--ink2);display:flex;align-items:center;gap:8px}
 .odds .pct{font-size:40px;font-weight:700;line-height:1.1}
 .swatch{width:12px;height:12px;border-radius:3px;display:inline-block}
