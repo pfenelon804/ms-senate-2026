@@ -117,6 +117,12 @@ button:focus-visible,select:focus-visible,input:focus-visible,th[data-k]:focus-v
     </div>
   </section>
 
+  <section class="card" aria-labelledby="h-changed" id="changed-card" hidden>
+    <h2 id="h-changed">What changed</h2>
+    <p class="sub" id="changed-head"></p>
+    <ul class="watch" id="changed"></ul>
+  </section>
+
   <section class="card" aria-labelledby="h-watch">
     <h2 id="h-watch">What to watch</h2>
     <ul class="watch" id="watch"></ul>
@@ -186,7 +192,7 @@ button:focus-visible,select:focus-visible,input:focus-visible,th[data-k]:focus-v
     <a href="https://www.sos.ms.gov/elections-voting">Mississippi Secretary of State</a> ·
     <a href="https://mississippitoday.org/">Mississippi Today</a> ·
     <a href="https://www.mississippifreepress.org/">Mississippi Free Press</a><br>
-    <span id="pagever">Page version d7b50aca</span>
+    <span id="pagever">Page version 1e491bf9</span>
   </footer>
 </div>
 
@@ -203,7 +209,7 @@ function showTip(e, html){ tip.innerHTML = html; tip.style.opacity = 1;
 function hideTip(){ tip.style.opacity = 0; }
 const widthOf = svg => Math.max(280, svg.node().getBoundingClientRect().width || (svg.node().parentNode.clientWidth - 40));
 
-const PAGE_VERSION = "d7b50aca";
+const PAGE_VERSION = "1e491bf9";
 fetch("data.json?" + Date.now(), {cache: "no-store"}).then(r => r.json()).then(D => {
   // Browsers can hold an old copy of this page. data.json is always fresh, so if it names a newer page, load that once.
   if (D.page_version && D.page_version !== PAGE_VERSION) {
@@ -237,6 +243,13 @@ fetch("data.json?" + Date.now(), {cache: "no-store"}).then(r => r.json()).then(D
   document.getElementById("f-rem").textContent = "About " + fmt(Math.round(D.ap_remaining / 100) * 100);
   document.getElementById("f-med").textContent = signed(Math.round(D.median / 100) * 100);
 
+  if (D.changed) {
+    document.getElementById("h-changed").textContent = "What changed since the " + D.changed.since + " update";
+    document.getElementById("changed-head").textContent = D.changed.head;
+    const ch = document.getElementById("changed");
+    D.changed.items.forEach(t => { const li = document.createElement("li"); li.textContent = t; ch.appendChild(li); });
+    document.getElementById("changed-card").hidden = false;
+  }
   const watch = document.getElementById("watch");
   D.watch.forEach(t => { const li = document.createElement("li"); li.textContent = t; watch.appendChild(li); });
 
