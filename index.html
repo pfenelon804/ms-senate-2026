@@ -60,6 +60,17 @@ footer{color:var(--muted);font-size:13px;margin-top:24px}
 footer a{color:var(--ink2)}
 .chart{width:100%;display:block}
 .note{font-size:13px;color:var(--muted);margin-top:8px}
+select,input[type=search]{font:inherit;font-size:14px;color:var(--ink);background:var(--page);border:1px solid var(--card-border);border-radius:8px;padding:6px 10px}
+input[type=search]{width:100%;max-width:280px;margin-bottom:4px}
+th[data-k]{cursor:pointer;user-select:none;white-space:nowrap}
+th[data-k].on::after{content:" \25BE"} th[data-k].on.asc::after{content:" \25B4"}
+#tbl tbody tr{cursor:pointer} #tbl tbody tr:hover td{background:var(--page)}
+.cd-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-top:12px}
+.cd-row{display:flex;align-items:center;gap:10px;margin:6px 0;font-size:14px}
+.cd-row .nm{width:150px;color:var(--ink2)} .cd-row .track{flex:1;height:12px;background:var(--page);border-radius:6px;overflow:hidden}
+.cd-row .fill{height:100%;border-radius:0 4px 4px 0} .cd-row .val{width:120px;text-align:right}
+#map path,#map circle,#net rect{cursor:pointer}
+#map path.sel{stroke:var(--ink);stroke-width:2.5}
 </style>
 </head>
 <body>
@@ -99,6 +110,15 @@ footer a{color:var(--ink2)}
     <p class="sub">County color shows who is leading the counted vote. Circle size shows how many regular ballots AP still expects there.</p>
     <svg class="chart" id="map" role="img" aria-label="Map of Mississippi counties"></svg>
     <div class="legend" id="map-legend"></div>
+    <div class="note">Tap or click any county for its details.</div>
+  </section>
+
+  <section class="card" aria-labelledby="h-county" id="county-card">
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">
+      <h2 id="h-county">County detail</h2>
+      <label style="font-size:14px;color:var(--ink2)">County <select id="county-pick"></select></label>
+    </div>
+    <div id="county-detail"></div>
   </section>
 
   <section class="card" aria-labelledby="h-net">
@@ -127,13 +147,26 @@ footer a{color:var(--ink2)}
       <li><b>Affidavit (provisional) ballots</b>, cast when a voter's eligibility is in question. About 8,000 to 17,000 statewide, roughly half accepted, leaning somewhat more Democratic than the county. Replaced with official county counts as clerks report them.</li>
       <li><b>Late mail absentee ballots</b> postmarked by Nov. 3 and arriving by Nov. 10. Very few.</li>
     </ul>
-    <details><summary>Full county table</summary><div class="tablewrap"><table id="tbl"><thead><tr><th>County</th><th>Counted</th><th>Lead (pts)</th><th>Still expected</th><th>Expected net</th></tr></thead><tbody></tbody></table></div></details>
+  </section>
+
+  <section class="card" aria-labelledby="h-tbl">
+    <h2 id="h-tbl">Results by county</h2>
+    <p class="sub">Unofficial counted vote. Tap a column to sort, a row for details.</p>
+    <input id="tbl-search" type="search" placeholder="Find a county" aria-label="Find a county">
+    <div class="tablewrap"><table id="tbl"><thead><tr>
+      <th data-k="name">County</th><th data-k="colom">Colom</th><th data-k="hyde_smith">Hyde-Smith</th><th data-k="pinkins">Pinkins</th>
+      <th data-k="margin_pts">Lead</th><th data-k="pct_in">% in</th><th data-k="remaining">Still expected</th><th data-k="net_expected">Expected net</th>
+    </tr></thead><tbody></tbody></table></div>
   </section>
 
   <footer>
     Unofficial and independent; not affiliated with any campaign, party or news outlet. All results are unofficial until certified.
     Data: county results from the Associated Press via NBC News; absentee counts from the Mississippi Secretary of State; affidavit counts from county officials as reported in local news.
-    Map: U.S. Census Bureau via us-atlas.
+    Map: U.S. Census Bureau via us-atlas.<br>
+    Live results: <a href="https://www.nbcnews.com/politics/2026-elections/mississippi-senate-results">NBC News (AP)</a> ·
+    <a href="https://www.sos.ms.gov/elections-voting">Mississippi Secretary of State</a> ·
+    <a href="https://mississippitoday.org/">Mississippi Today</a> ·
+    <a href="https://www.mississippifreepress.org/">Mississippi Free Press</a>
   </footer>
 </div>
 
@@ -167,7 +200,7 @@ fetch("data.json?" + Date.now()).then(r => r.json()).then(D => {
   const watch = document.getElementById("watch");
   D.watch.forEach(t => { const li = document.createElement("li"); li.textContent = t; watch.appendChild(li); });
 
-  drawDist(D); drawNet(D); drawTrend(D); drawMap(D); fillTable(D);
+  fillTable(D); drawDist(D); drawNet(D); drawTrend(D); drawMap(D);
   addEventListener("resize", () => { drawDist(D); drawNet(D); drawTrend(D); drawMap(D); });
 });
 
@@ -203,6 +236,7 @@ function drawNet(D){
   g.append("text").attr("x", d => d.net_expected > 0 ? x(d.net_expected) + 6 : x(d.net_expected) - 6).attr("text-anchor", d => d.net_expected > 0 ? "start" : "end")
     .attr("y", d => y(d.county) + y.bandwidth() / 2).attr("dy", "0.35em").text(d => (d.net_expected > 0 ? "C +" : "H-S +") + fmt(Math.abs(d.net_expected)));
   g.append("rect").attr("x", 0).attr("width", W).attr("y", d => y(d.county) - 4).attr("height", y.bandwidth() + 8).attr("fill", "transparent")
+    .on("click", (e, d) => { hideTip(); selectCounty(d.county, true); })
     .on("mousemove", (e, d) => showTip(e, `<b>${d.county} County</b><br>About ${fmt(d.remaining)} regular ballots still expected<br>Counted vote: ${lead(d.margin_pts)}<br>Expected net: ${signed(d.net_expected)}`)).on("mouseleave", hideTip);
 }
 
@@ -246,10 +280,13 @@ function drawMap(D){
     svg.append("g").selectAll("path").data(feats).join("path").attr("d", path)
       .attr("fill", f => { const c = byF.get(String(f.id)); return c ? color(c.margin_pts / 100) : css("--neutral"); })
       .attr("stroke", css("--surface")).attr("stroke-width", 1)
+      .classed("sel", f => SEL && byF.get(String(f.id))?.name === SEL)
+      .on("click", (e, f) => { const c = byF.get(String(f.id)); if (c) { hideTip(); selectCounty(c.name, true); } })
       .on("mousemove", (e, f) => { const c = byF.get(String(f.id)); if (c) showTip(e, tipHtml(c)); }).on("mouseleave", hideTip);
     const bub = feats.map(f => ({f, c:byF.get(String(f.id)), xy:path.centroid(f)})).filter(d => d.c && d.c.remaining > 0).sort((a, b) => b.c.remaining - a.c.remaining);
     svg.append("g").selectAll("circle").data(bub).join("circle").attr("cx", d => d.xy[0]).attr("cy", d => d.xy[1]).attr("r", d => r(d.c.remaining))
       .attr("fill", css("--ink")).attr("fill-opacity", 0.14).attr("stroke", css("--ink")).attr("stroke-width", 1.5)
+      .on("click", (e, d) => { hideTip(); selectCounty(d.c.name, true); })
       .on("mousemove", (e, d) => showTip(e, tipHtml(d.c))).on("mouseleave", hideTip);
     svg.append("g").selectAll("text").data(bub.slice(0, 4)).join("text").attr("class", "lbl").attr("x", d => d.xy[0] + r(d.c.remaining) + 4).attr("y", d => d.xy[1]).attr("dy", "0.35em").text(d => d.c.name);
     const lg = document.getElementById("map-legend");
@@ -258,11 +295,53 @@ function drawMap(D){
   if (US) go(US); else fetch("https://cdn.jsdelivr.net/npm/us-atlas@3.0.1/counties-10m.json").then(r => r.json()).then(go);
 }
 
+let SEL = null, DATA = null;
+function selectCounty(name, scroll){
+  const c = DATA.counties.find(x => x.name === name); if (!c) return;
+  SEL = name; document.getElementById("county-pick").value = name;
+  d3.selectAll("#map path").classed("sel", f => f && String(f.id) === c.fips);
+  const tot = c.colom + c.hyde_smith + c.pinkins, pct = v => tot ? (100 * v / tot) : 0;
+  const row = (nm, v, col) => `<div class="cd-row"><span class="nm">${nm}</span><span class="track"><span class="fill" style="display:block;width:${pct(v)}%;background:${col}"></span></span><span class="val">${fmt(v)} (${pct(v).toFixed(1)}%)</span></div>`;
+  const aff = DATA.affidavit_counties_reported.includes(name.toUpperCase()) ? "Official count reported" : "Not yet reported (estimated)";
+  document.getElementById("county-detail").innerHTML =
+    `<p class="sub" style="margin-top:4px">${c.name} County, unofficial counted vote</p>` +
+    row("Scott Colom (D)", c.colom, css("--dem")) + row("Cindy Hyde-Smith (R)", c.hyde_smith, css("--gop")) + row("Ty Pinkins (I)", c.pinkins, css("--muted")) +
+    `<div class="cd-grid">
+      <div class="fact"><div class="k">Lead</div><div class="v">${lead(c.margin_pts)}</div></div>
+      <div class="fact"><div class="k">Share of expected vote in (AP)</div><div class="v">${c.pct_in}%</div></div>
+      <div class="fact"><div class="k">Regular ballots still expected</div><div class="v">${fmt(c.remaining)}</div></div>
+      <div class="fact"><div class="k">Expected net from uncounted ballots</div><div class="v">${signed(c.net_expected)}</div></div>
+      <div class="fact"><div class="k">Mail absentees not yet returned (Nov. 2)</div><div class="v">${fmt(c.absentee_out)}</div></div>
+      <div class="fact"><div class="k">Affidavit ballots</div><div class="v" style="font-size:15px">${aff}</div></div>
+    </div>`;
+  if (scroll) document.getElementById("county-card").scrollIntoView({behavior:"smooth", block:"start"});
+}
+
+let SORT = {k:"remaining", asc:false};
 function fillTable(D){
-  const tb = document.querySelector("#tbl tbody");
-  D.counties.slice().sort((a, b) => b.remaining - a.remaining).forEach(c => {
+  DATA = D;
+  const pick = document.getElementById("county-pick");
+  if (!pick.options.length){
+    D.counties.slice().sort((a, b) => a.name.localeCompare(b.name)).forEach(c => pick.add(new Option(c.name, c.name)));
+    pick.onchange = () => selectCounty(pick.value, false);
+    document.querySelectorAll("#tbl th[data-k]").forEach(th => th.onclick = () => {
+      const k = th.dataset.k; SORT = {k, asc: SORT.k === k ? !SORT.asc : k === "name"}; renderRows();
+    });
+    document.getElementById("tbl-search").oninput = renderRows;
+  }
+  renderRows();
+  if (!SEL) selectCounty(d3.max(D.counties, c => c.remaining) ? D.counties.reduce((a, b) => b.remaining > a.remaining ? b : a).name : "Hinds", false);
+}
+function renderRows(){
+  const q = document.getElementById("tbl-search").value.trim().toLowerCase();
+  const tb = document.querySelector("#tbl tbody"); tb.innerHTML = "";
+  document.querySelectorAll("#tbl th[data-k]").forEach(th => { th.classList.toggle("on", th.dataset.k === SORT.k); th.classList.toggle("asc", th.dataset.k === SORT.k && SORT.asc); });
+  const rows = DATA.counties.filter(c => c.name.toLowerCase().includes(q)).sort((a, b) => {
+    const v = SORT.k === "name" ? a.name.localeCompare(b.name) : a[SORT.k] - b[SORT.k]; return SORT.asc ? v : -v; });
+  rows.forEach(c => {
     const tr = document.createElement("tr");
-    tr.innerHTML = `<td>${c.name}</td><td>${fmt(c.total)}</td><td>${(c.margin_pts > 0 ? "C +" : "H-S +") + Math.abs(c.margin_pts).toFixed(1)}</td><td>${fmt(c.remaining)}</td><td>${(c.net_expected > 0 ? "C +" : "H-S +") + fmt(Math.abs(c.net_expected))}</td>`;
+    tr.innerHTML = `<td>${c.name}</td><td>${fmt(c.colom)}</td><td>${fmt(c.hyde_smith)}</td><td>${fmt(c.pinkins)}</td><td>${(c.margin_pts >= 0 ? "C +" : "H-S +") + Math.abs(c.margin_pts).toFixed(1)}</td><td>${c.pct_in}%</td><td>${fmt(c.remaining)}</td><td>${(c.net_expected >= 0 ? "C +" : "H-S +") + fmt(Math.abs(c.net_expected))}</td>`;
+    tr.onclick = () => selectCounty(c.name, true);
     tb.appendChild(tr);
   });
 }
