@@ -74,6 +74,16 @@ th[data-k].on::after{content:" \25BE"} th[data-k].on.asc::after{content:" \25B4"
 svg text.halo{paint-order:stroke;stroke:var(--surface);stroke-width:3px;stroke-linejoin:round}
 #map path,#map circle,#net rect{cursor:pointer}
 #map path.sel{stroke:var(--ink);stroke-width:2.5}
+.stamprow{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-top:8px}
+.stamprow .stamp{margin-top:0}
+.stamp.stale{color:var(--gop)}
+.share{font:inherit;font-size:14px;font-weight:600;color:var(--ink);background:var(--surface);border:1px solid var(--card-border);border-radius:999px;padding:8px 16px;cursor:pointer}
+.share:hover{border-color:var(--axis)}
+button:focus-visible,select:focus-visible,input:focus-visible,th[data-k]:focus-visible,#tbl tbody tr:focus-visible{outline:2px solid var(--dem);outline-offset:2px}
+.summary{font-size:18px;line-height:1.45;color:var(--ink);margin:4px 0 16px}
+.barwrap{position:relative;margin:12px 0 8px}
+.barwrap .bar{margin:0}
+.barwrap .mid{position:absolute;left:50%;top:-4px;bottom:-4px;width:2px;background:var(--ink);opacity:.5;transform:translateX(-1px)}
 </style>
 </head>
 <body>
@@ -81,39 +91,38 @@ svg text.halo{paint-order:stroke;stroke:var(--surface);stroke-width:3px;stroke-l
 <div class="wrap">
   <header>
     <h1>Mississippi Senate count tracker</h1>
-    <p>Who is likely ahead once every ballot is counted, based on where the uncounted ballots are.</p>
-    <div class="stamp" id="stamp">Loading...</div>
+    <p>Who is likely to win the uncalled U.S. Senate race once every ballot is counted.</p>
+    <div class="stamprow"><div class="stamp" id="stamp">Loading...</div><button class="share" id="share" type="button">Share this page</button></div>
   </header>
 
   <section class="card" aria-labelledby="h-odds">
-    <h2 id="h-odds">Chance of winning after all ballots are counted</h2>
-    <p class="sub" id="odds-sub"></p>
+    <h2 id="h-odds">Chance of winning</h2>
+    <p class="summary" id="summary"></p>
     <div class="odds">
       <div><div class="who"><span class="swatch" style="background:var(--dem)"></span>Scott Colom (D)</div><div class="pct" id="p-dem"></div></div>
       <div style="text-align:right"><div class="who" style="justify-content:flex-end">Cindy Hyde-Smith (R)<span class="swatch" style="background:var(--gop)"></span></div><div class="pct" id="p-gop"></div></div>
     </div>
-    <div class="bar" role="img" id="oddsbar"><div id="b-dem" style="background:var(--dem)"></div><div id="b-gop" style="background:var(--gop)"></div></div>
+    <div class="barwrap"><div class="bar" role="img" id="oddsbar"><div id="b-dem" style="background:var(--dem)"></div><div id="b-gop" style="background:var(--gop)"></div></div><div class="mid" aria-hidden="true"></div></div>
+    <p class="sub" id="odds-sub"></p>
     <div class="facts">
-      <div class="fact"><div class="k">Counted so far</div><div class="v" id="f-count"></div></div>
-      <div class="fact"><div class="k">Share of expected vote in</div><div class="v" id="f-in"></div></div>
-      <div class="fact"><div class="k">Regular ballots still expected (AP)</div><div class="v" id="f-rem"></div></div>
+      <div class="fact"><div class="k">Lead in the votes counted so far</div><div class="v" id="f-count"></div></div>
+      <div class="fact"><div class="k">Share of the expected vote counted</div><div class="v" id="f-in"></div></div>
+      <div class="fact"><div class="k">Ballots left to count (AP estimate)</div><div class="v" id="f-rem"></div></div>
       <div class="fact"><div class="k">Most likely final margin</div><div class="v" id="f-med"></div></div>
     </div>
   </section>
 
-  <section class="card" aria-labelledby="h-dist">
-    <h2 id="h-dist">Range of possible final margins</h2>
-    <p class="sub">200,000 simulated counts of the remaining ballots. Each bar is the share of simulations ending in that range (the most extreme 1% are left off).</p>
-    <svg class="chart" id="dist" role="img" aria-label="Histogram of simulated final margins"></svg>
-    <div class="legend"><span><span class="swatch" style="background:var(--dem)"></span>Colom wins</span><span><span class="swatch" style="background:var(--gop)"></span>Hyde-Smith wins</span></div>
+  <section class="card" aria-labelledby="h-watch">
+    <h2 id="h-watch">What to watch</h2>
+    <ul class="watch" id="watch"></ul>
   </section>
 
   <section class="card" aria-labelledby="h-map">
-    <h2 id="h-map">Where the uncounted ballots are</h2>
-    <p class="sub">County color shows who is leading the counted vote. Circle size shows how many regular ballots AP still expects there.</p>
-    <svg class="chart" id="map" role="img" aria-label="Map of Mississippi counties"></svg>
+    <h2 id="h-map">Where the ballots left to count are</h2>
+    <p class="sub">Color shows who leads the votes counted so far in each county. Circle size shows how many ballots are left to count there.</p>
+    <svg class="chart" id="map" role="img" aria-label="Map of Mississippi counties showing who leads and how many ballots are left"></svg>
     <div class="legend" id="map-legend"></div>
-    <div class="note">Tap or click any county for its details.</div>
+    <div class="note">Tap any county for its details, or pick one below.</div>
   </section>
 
   <section class="card" aria-labelledby="h-county" id="county-card">
@@ -125,41 +134,43 @@ svg text.halo{paint-order:stroke;stroke:var(--surface);stroke-width:3px;stroke-l
   </section>
 
   <section class="card" aria-labelledby="h-net">
-    <h2 id="h-net">Counties that move the margin most</h2>
-    <p class="sub">Expected net votes from each county's uncounted regular and affidavit ballots.</p>
-    <svg class="chart" id="net" role="img" aria-label="Bar chart of expected net votes by county"></svg>
+    <h2 id="h-net">Which counties could swing it</h2>
+    <p class="sub">How many votes each county's uncounted ballots are expected to add to one candidate's lead.</p>
+    <svg class="chart" id="net" role="img" aria-label="Bar chart of expected vote gains by county"></svg>
+  </section>
+
+  <section class="card" aria-labelledby="h-dist">
+    <h2 id="h-dist">How close could it get?</h2>
+    <p class="sub">The model counted the remaining ballots 200,000 different ways. Each bar shows how often the final margin landed in that range. Right of the dashed line, Colom wins.</p>
+    <svg class="chart" id="dist" role="img" aria-label="Chart of how often each final margin came up in the simulations"></svg>
+    <div class="legend"><span><span class="swatch" style="background:var(--dem)"></span>Colom wins</span><span><span class="swatch" style="background:var(--gop)"></span>Hyde-Smith wins</span></div>
   </section>
 
   <section class="card" aria-labelledby="h-trend" id="trend-card">
     <h2 id="h-trend">How the forecast has moved</h2>
-    <p class="sub">Colom's chance of winning at each update.</p>
-    <svg class="chart" id="trend" role="img" aria-label="Line chart of Colom's win chance over time"></svg>
+    <p class="sub">Colom's chance of winning at each update. It only gets a new point when the count or the inputs change.</p>
+    <svg class="chart" id="trend" role="img" aria-label="Line chart of Colom's chance of winning over time"></svg>
     <div class="note" id="trend-note"></div>
   </section>
 
-  <section class="card" aria-labelledby="h-watch">
-    <h2 id="h-watch">What to watch</h2>
-    <ul class="watch" id="watch"></ul>
+  <section class="card" aria-labelledby="h-tbl">
+    <h2 id="h-tbl">Full results by county</h2>
+    <p class="sub">Unofficial votes counted so far. Tap a column to sort, or a row for details.</p>
+    <input id="tbl-search" type="search" placeholder="Find a county" aria-label="Find a county">
+    <div class="tablewrap"><table id="tbl"><thead><tr>
+      <th data-k="name">County</th><th data-k="colom">Colom</th><th data-k="hyde_smith">Hyde-Smith</th><th data-k="pinkins">Pinkins</th>
+      <th data-k="margin_pts">Lead</th><th data-k="pct_in">Counted</th><th data-k="remaining">Left to count</th><th data-k="net_expected">Expected gain</th>
+    </tr></thead><tbody></tbody></table></div>
   </section>
 
   <section class="card" aria-labelledby="h-how">
     <h2 id="h-how">How this works</h2>
-    <p class="sub" style="margin-bottom:8px">Three groups of ballots are still out. For each, the model asks how many there are, where they are, and which way they lean, then runs the count 200,000 times with those uncertain.</p>
+    <p class="sub" style="margin-bottom:8px">Three kinds of ballots are still out. For each, the model estimates how many there are, where they are, and which way they lean, then counts them 200,000 different ways to see how often each candidate comes out ahead.</p>
     <ul class="watch">
-      <li><b>Regular ballots AP still expects</b> (absentee and Election Day ballots not yet tabulated). Assumed to lean like the vote already counted in the same county, with room to break either way statewide.</li>
-      <li><b>Affidavit (provisional) ballots</b>, cast when a voter's eligibility is in question. About 8,000 to 17,000 statewide, roughly half accepted, leaning somewhat more Democratic than the county. Replaced with official county counts as clerks report them.</li>
-      <li><b>Late mail absentee ballots</b> postmarked by Nov. 3 and arriving by Nov. 10. Very few.</li>
+      <li><b>Ballots AP still expects</b> (absentee and Election Day ballots not yet counted). Assumed to lean like the votes already counted in the same county, with room to break either way statewide.</li>
+      <li><b>Affidavit (provisional) ballots</b>, cast when a voter's eligibility is questioned at the polls. About 8,000 to 17,000 statewide, roughly half accepted, leaning somewhat more Democratic than their county. Replaced with official county counts as clerks report them.</li>
+      <li><b>Late mail ballots</b> postmarked by Nov. 3 and arriving by Nov. 10. Very few.</li>
     </ul>
-  </section>
-
-  <section class="card" aria-labelledby="h-tbl">
-    <h2 id="h-tbl">Results by county</h2>
-    <p class="sub">Unofficial counted vote. Tap a column to sort, a row for details.</p>
-    <input id="tbl-search" type="search" placeholder="Find a county" aria-label="Find a county">
-    <div class="tablewrap"><table id="tbl"><thead><tr>
-      <th data-k="name">County</th><th data-k="colom">Colom</th><th data-k="hyde_smith">Hyde-Smith</th><th data-k="pinkins">Pinkins</th>
-      <th data-k="margin_pts">Lead</th><th data-k="pct_in">% in</th><th data-k="remaining">Still expected</th><th data-k="net_expected">Expected net</th>
-    </tr></thead><tbody></tbody></table></div>
   </section>
 
   <footer>
@@ -188,17 +199,29 @@ const widthOf = svg => Math.max(280, svg.node().getBoundingClientRect().width ||
 
 fetch("data.json?" + Date.now()).then(r => r.json()).then(D => {
   const p = D.p_colom_wins, when = new Date(D.run_ct);
-  document.getElementById("stamp").textContent = "Updated " + when.toLocaleString("en-US", {weekday:"short", month:"short", day:"numeric", hour:"numeric", minute:"2-digit", timeZone:"America/Chicago"}) + " CT. Refreshes about 8 AM and 5 PM CT.";
+  const hrs = (Date.now() - when) / 36e5, ago = hrs < 1 ? "less than an hour ago" : hrs < 24 ? Math.round(hrs) + (Math.round(hrs) === 1 ? " hour ago" : " hours ago") : Math.round(hrs / 24) + " days ago";
+  const st = document.getElementById("stamp");
+  st.textContent = "Updated " + ago + " (" + when.toLocaleString("en-US", {weekday:"short", month:"short", day:"numeric", hour:"numeric", minute:"2-digit", timeZone:"America/Chicago"}) + " CT). Refreshes about 8 AM and 5 PM CT.";
+  if (hrs > 14 && !D.winner) { st.textContent += " This update is older than usual."; st.classList.add("stale"); }
+  const sh = document.getElementById("share"), url = "https://tinyurl.com/ms-senate-2026";
+  sh.onclick = async () => {
+    try { if (navigator.share) { await navigator.share({title:"Mississippi Senate count tracker", text:"Who is likely to win once every ballot is counted", url}); return; } } catch (e) { if (e.name === "AbortError") return; }
+    try { await navigator.clipboard.writeText(url); sh.textContent = "Link copied"; } catch (e) { sh.textContent = url; }
+    setTimeout(() => sh.textContent = "Share this page", 2500);
+  };
   const pd = Math.round(p * 100), pr = 100 - pd;
   document.getElementById("p-dem").textContent = pd + "%";
   document.getElementById("p-gop").textContent = pr + "%";
   document.getElementById("b-dem").style.width = pd + "%";
   document.getElementById("b-gop").style.width = pr + "%";
   document.getElementById("oddsbar").setAttribute("aria-label", `Colom ${pd} percent, Hyde-Smith ${pr} percent`);
-  document.getElementById("odds-sub").textContent = D.winner ? `AP has projected ${D.winner} as the winner.` : `Race not yet called. 80% of simulations end between ${signed(D.p10)} and ${signed(D.p90)}.`;
+  const fav = p >= 0.5 ? "Colom" : "Hyde-Smith", fp = Math.max(p, 1 - p), inTen = Math.round(fp * 10);
+  document.getElementById("odds-sub").textContent = D.winner ? `AP has projected ${D.winner} as the winner.` :
+    `The race has not been called. ${fav} comes out ahead in about ${inTen} of every 10 simulated counts. Long shots like the other ${10 - inTen} in 10 do happen.`;
+  document.getElementById("summary").textContent = D.summary;
   document.getElementById("f-count").textContent = signed(D.current_margin);
   document.getElementById("f-in").textContent = D.percent_in + "%";
-  document.getElementById("f-rem").textContent = "about " + fmt(Math.round(D.ap_remaining / 100) * 100);
+  document.getElementById("f-rem").textContent = "About " + fmt(Math.round(D.ap_remaining / 100) * 100);
   document.getElementById("f-med").textContent = signed(Math.round(D.median / 100) * 100);
 
   const watch = document.getElementById("watch");
@@ -215,7 +238,7 @@ function drawDist(D){
   const bins = counts.map((c,i) => ({x0:edges[i], x1:edges[i+1], c}));
   const x = d3.scaleLinear([edges[0], edges[edges.length-1]], [m.l, W - m.r]);
   const y = d3.scaleLinear([0, d3.max(counts)], [H - m.b, m.t]);
-  svg.append("g").attr("transform", `translate(0,${H - m.b})`).call(d3.axisBottom(x).ticks(W < 500 ? 4 : 8).tickFormat(v => v === 0 ? "Tie" : (v > 0 ? "C +" : "H-S +") + d3.format(",")(Math.abs(v)))).call(g => g.select(".domain").attr("stroke", css("--axis"))).call(g => g.selectAll("line").attr("stroke", css("--axis")));
+  svg.append("g").attr("transform", `translate(0,${H - m.b})`).call(d3.axisBottom(x).ticks(W < 500 ? 3 : 6).tickFormat(v => v === 0 ? "Tie" : (v > 0 ? "Colom +" : "H-S +") + d3.format("~s")(Math.abs(v)))).call(g => g.select(".domain").attr("stroke", css("--axis"))).call(g => g.selectAll("line").attr("stroke", css("--axis")));
   svg.append("g").selectAll("rect").data(bins).join("rect")
     .attr("x", d => x(d.x0) + 1).attr("width", d => Math.max(0, x(d.x1) - x(d.x0) - 2))
     .attr("y", d => y(d.c)).attr("height", d => y(0) - y(d.c)).attr("rx", 2)
@@ -238,7 +261,7 @@ function drawNet(D){
     .attr("fill", d => d.net_expected > 0 ? css("--dem") : css("--gop"));
   g.append("text").attr("class", "lbl").attr("x", m.l - 8).attr("y", d => y(d.county) + y.bandwidth() / 2).attr("dy", "0.35em").attr("text-anchor", "end").text(d => d.county);
   g.append("text").attr("x", d => d.net_expected > 0 ? x(d.net_expected) + 6 : x(d.net_expected) - 6).attr("text-anchor", d => d.net_expected > 0 ? "start" : "end")
-    .attr("y", d => y(d.county) + y.bandwidth() / 2).attr("dy", "0.35em").text(d => (d.net_expected > 0 ? "C +" : "H-S +") + fmt(Math.abs(d.net_expected)));
+    .attr("y", d => y(d.county) + y.bandwidth() / 2).attr("dy", "0.35em").text(d => (d.net_expected > 0 ? "Colom +" : "Hyde-Smith +") + fmt(Math.abs(d.net_expected)));
   g.append("rect").attr("x", 0).attr("width", W).attr("y", d => y(d.county) - 4).attr("height", y.bandwidth() + 8).attr("fill", "transparent")
     .on("click", (e, d) => { hideTip(); selectCounty(d.county, true); })
     .on("mousemove", (e, d) => showTip(e, `<b>${d.county} County</b><br>About ${fmt(d.remaining)} regular ballots still expected<br>Counted vote: ${lead(d.margin_pts)}<br>Expected net: ${signed(d.net_expected)}`)).on("mouseleave", hideTip);
@@ -255,7 +278,7 @@ function drawTrend(D){
   const y = d3.scaleLinear([0, 1], [H - m.b, m.t]);
   svg.append("g").attr("transform", `translate(${m.l},0)`).call(d3.axisLeft(y).ticks(4).tickFormat(d3.format(".0%")).tickSize(-(W - m.l - m.r)))
     .call(g => g.select(".domain").remove()).call(g => g.selectAll("line").attr("stroke", css("--grid")));
-  svg.append("g").attr("transform", `translate(0,${H - m.b})`).call(d3.axisBottom(x).ticks(W < 500 ? 3 : 6)).call(g => g.select(".domain").attr("stroke", css("--axis")));
+  svg.append("g").attr("transform", `translate(0,${H - m.b})`).call(d3.axisBottom(x).ticks(W < 500 ? 3 : 5).tickFormat(d3.timeFormat("%b %-d, %-I %p"))).call(g => g.select(".domain").attr("stroke", css("--axis")));
   svg.append("line").attr("x1", m.l).attr("x2", W - m.r).attr("y1", y(0.5)).attr("y2", y(0.5)).attr("stroke", css("--axis")).attr("stroke-dasharray", "3 3");
   svg.append("path").datum(pts).attr("fill", "none").attr("stroke", css("--dem")).attr("stroke-width", 2).attr("d", d3.line(d => x(d.t), d => y(d.p)));
   svg.append("g").selectAll("circle").data(pts).join("circle").attr("cx", d => x(d.t)).attr("cy", d => y(d.p)).attr("r", 4).attr("fill", css("--dem")).attr("stroke", css("--surface")).attr("stroke-width", 2);
@@ -328,6 +351,7 @@ function fillTable(D){
   if (!pick.options.length){
     D.counties.slice().sort((a, b) => a.name.localeCompare(b.name)).forEach(c => pick.add(new Option(c.name, c.name)));
     pick.onchange = () => selectCounty(pick.value, false);
+    document.querySelectorAll("#tbl th[data-k]").forEach(th => { th.tabIndex = 0; th.onkeydown = e => { if (e.key === "Enter") th.click(); }; });
     document.querySelectorAll("#tbl th[data-k]").forEach(th => th.onclick = () => {
       const k = th.dataset.k; SORT = {k, asc: SORT.k === k ? !SORT.asc : k === "name"}; renderRows();
     });
@@ -344,8 +368,9 @@ function renderRows(){
     const v = SORT.k === "name" ? a.name.localeCompare(b.name) : a[SORT.k] - b[SORT.k]; return SORT.asc ? v : -v; });
   rows.forEach(c => {
     const tr = document.createElement("tr");
-    tr.innerHTML = `<td>${c.name}</td><td>${fmt(c.colom)}</td><td>${fmt(c.hyde_smith)}</td><td>${fmt(c.pinkins)}</td><td>${(c.margin_pts >= 0 ? "C +" : "H-S +") + Math.abs(c.margin_pts).toFixed(1)}</td><td>${c.pct_in}%</td><td>${fmt(c.remaining)}</td><td>${(c.net_expected >= 0 ? "C +" : "H-S +") + fmt(Math.abs(c.net_expected))}</td>`;
+    tr.innerHTML = `<td>${c.name}</td><td>${fmt(c.colom)}</td><td>${fmt(c.hyde_smith)}</td><td>${fmt(c.pinkins)}</td><td>${lead(c.margin_pts)}</td><td>${c.pct_in}%</td><td>${fmt(c.remaining)}</td><td>${signed(c.net_expected)}</td>`;
     tr.onclick = () => selectCounty(c.name, true);
+    tr.tabIndex = 0; tr.onkeydown = e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); selectCounty(c.name, true); } };
     tb.appendChild(tr);
   });
 }
