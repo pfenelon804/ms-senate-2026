@@ -100,7 +100,7 @@ th[data-k].on::after{content:" \25BE"} th[data-k].on.asc::after{content:" \25B4"
 
   <section class="card" aria-labelledby="h-dist">
     <h2 id="h-dist">Range of possible final margins</h2>
-    <p class="sub">200,000 simulated counts of the remaining ballots. Each bar is the share of simulations ending in that range.</p>
+    <p class="sub">200,000 simulated counts of the remaining ballots. Each bar is the share of simulations ending in that range (the most extreme 1% are left off).</p>
     <svg class="chart" id="dist" role="img" aria-label="Histogram of simulated final margins"></svg>
     <div class="legend"><span><span class="swatch" style="background:var(--dem)"></span>Colom wins</span><span><span class="swatch" style="background:var(--gop)"></span>Hyde-Smith wins</span></div>
   </section>
@@ -181,6 +181,7 @@ const tip = document.getElementById("tip");
 function showTip(e, html){ tip.innerHTML = html; tip.style.opacity = 1;
   const x = Math.min(e.clientX + 14, innerWidth - 250), y = e.clientY + 14; tip.style.left = x + "px"; tip.style.top = y + "px"; }
 function hideTip(){ tip.style.opacity = 0; }
+const widthOf = svg => Math.max(280, svg.node().getBoundingClientRect().width || (svg.node().parentNode.clientWidth - 40));
 
 fetch("data.json?" + Date.now()).then(r => r.json()).then(D => {
   const p = D.p_colom_wins, when = new Date(D.run_ct);
@@ -205,7 +206,7 @@ fetch("data.json?" + Date.now()).then(r => r.json()).then(D => {
 });
 
 function drawDist(D){
-  const svg = d3.select("#dist"), W = svg.node().clientWidth, H = 240, m = {t:10,r:10,b:36,l:10};
+  const svg = d3.select("#dist"), W = widthOf(svg), H = 240, m = {t:10,r:10,b:36,l:10};
   svg.attr("viewBox", `0 0 ${W} ${H}`).selectAll("*").remove();
   const {counts, edges} = D.histogram, total = d3.sum(counts);
   const bins = counts.map((c,i) => ({x0:edges[i], x1:edges[i+1], c}));
@@ -222,7 +223,7 @@ function drawDist(D){
 
 function drawNet(D){
   const rows = D.top_counties.slice(0, 10);
-  const svg = d3.select("#net"), W = svg.node().clientWidth, rowH = 30, m = {t:6,r:70,b:6,l:110}, H = m.t + m.b + rows.length * rowH;
+  const svg = d3.select("#net"), W = widthOf(svg), rowH = 30, m = {t:6,r:70,b:6,l:110}, H = m.t + m.b + rows.length * rowH;
   svg.attr("viewBox", `0 0 ${W} ${H}`).selectAll("*").remove();
   const ext = d3.max(rows, r => Math.abs(r.net_expected));
   const x = d3.scaleLinear([-ext, ext], [m.l, W - m.r]);
@@ -242,7 +243,7 @@ function drawNet(D){
 
 function drawTrend(D){
   const runs = D.runs, svg = d3.select("#trend"), note = document.getElementById("trend-note");
-  const W = svg.node().clientWidth, H = 200, m = {t:12,r:16,b:30,l:40};
+  const W = widthOf(svg), H = 200, m = {t:12,r:16,b:30,l:40};
   svg.attr("viewBox", `0 0 ${W} ${H}`).selectAll("*").remove();
   if (runs.length < 2){ svg.attr("height", 0); note.textContent = "The trend line appears after the second update."; return; }
   svg.attr("height", null); note.textContent = "";
@@ -269,7 +270,7 @@ function drawMap(D){
     US = us;
     const feats = topojson.feature(us, us.objects.counties).features.filter(f => String(f.id).startsWith("28"));
     const byF = new Map(D.counties.map(c => [c.fips, c]));
-    const svg = d3.select("#map"), W = svg.node().clientWidth, H = Math.min(620, W * 1.25);
+    const svg = d3.select("#map"), W = widthOf(svg), H = Math.min(620, W * 1.25);
     svg.attr("viewBox", `0 0 ${W} ${H}`).selectAll("*").remove();
     const proj = d3.geoTransverseMercator().rotate([89.75, 0]).fitSize([W, H], {type:"FeatureCollection", features:feats});
     const path = d3.geoPath(proj);
