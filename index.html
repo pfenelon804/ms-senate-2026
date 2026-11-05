@@ -9,7 +9,7 @@
 <title>Mississippi Senate Count Tracker</title>
 <meta name="description" content="Unofficial forecast of the uncalled 2026 Mississippi U.S. Senate race, based on the ballots still to be counted.">
 <meta property="og:title" content="Mississippi Senate Count Tracker">
-<meta property="og:description" content="Who is likely ahead once every ballot is counted. Updated twice a day.">
+<meta property="og:description" content="Who is likely ahead once every ballot is counted. Updated every 30 minutes.">
 <meta property="og:image" content="https://pfenelon804.github.io/ms-senate-2026/share.png">
 <meta property="og:url" content="https://pfenelon804.github.io/ms-senate-2026/">
 <meta http-equiv="Cache-Control" content="no-cache, must-revalidate">
@@ -83,11 +83,7 @@ svg text.halo{paint-order:stroke;stroke:var(--surface);stroke-width:3px;stroke-l
 .stamprow .stamp{margin-top:0}
 .stamp.stale{color:var(--gop)}
 .share{font:inherit;font-size:14px;font-weight:600;color:var(--ink);background:var(--surface);border:1px solid var(--card-border);border-radius:999px;padding:8px 16px;cursor:pointer}
-.share:hover{border-color:var(--axis)}
-.btns{display:flex;gap:8px;flex-wrap:wrap}
-a.share{text-decoration:none;display:inline-block}
-a.share[hidden]{display:none}
-button:focus-visible,select:focus-visible,input:focus-visible,th[data-k]:focus-visible,#tbl tbody tr:focus-visible{outline:2px solid var(--dem);outline-offset:2px}
+.share:hover{border-color:var(--axis)}button:focus-visible,select:focus-visible,input:focus-visible,th[data-k]:focus-visible,#tbl tbody tr:focus-visible{outline:2px solid var(--dem);outline-offset:2px}
 .summary{font-size:18px;line-height:1.45;color:var(--ink);margin:4px 0 16px}
 .barwrap{position:relative;margin:12px 0 8px}
 .barwrap .bar{margin:0}
@@ -100,7 +96,7 @@ button:focus-visible,select:focus-visible,input:focus-visible,th[data-k]:focus-v
   <header>
     <h1>Mississippi Senate count tracker</h1>
     <p>Who is likely to win the uncalled U.S. Senate race once every ballot is counted.</p>
-    <div class="stamprow"><div class="stamp" id="stamp">Loading...</div><div class="btns"><a class="share" id="runnow" href="http://100.71.142.94:8790/" target="_blank" rel="noopener" hidden>Run update now</a><button class="share" id="share" type="button">Share this page</button></div></div>
+    <div class="stamprow"><div class="stamp" id="stamp">Loading...</div><button class="share" id="share" type="button">Share this page</button></div>
   </header>
 
   <section class="card" aria-labelledby="h-odds">
@@ -196,7 +192,7 @@ button:focus-visible,select:focus-visible,input:focus-visible,th[data-k]:focus-v
     <a href="https://www.sos.ms.gov/elections-voting">Mississippi Secretary of State</a> ·
     <a href="https://mississippitoday.org/">Mississippi Today</a> ·
     <a href="https://www.mississippifreepress.org/">Mississippi Free Press</a><br>
-    <span id="pagever">Page version 473d931d</span>
+    <span id="pagever">Page version ca50ffb0</span>
   </footer>
 </div>
 
@@ -213,14 +209,7 @@ function showTip(e, html){ tip.innerHTML = html; tip.style.opacity = 1;
 function hideTip(){ tip.style.opacity = 0; }
 const widthOf = svg => Math.max(280, svg.node().getBoundingClientRect().width || (svg.node().parentNode.clientWidth - 40));
 
-const PAGE_VERSION = "473d931d";
-// Run-now button: only on PF's own devices (open the page once with ?pf=1; ?pf=0 hides it again). It opens the PC's run page over Tailscale.
-try {
-  const q = new URLSearchParams(location.search).get("pf");
-  if (q === "1") localStorage.setItem("ms-pf", "1"); else if (q === "0") localStorage.removeItem("ms-pf");
-  if (localStorage.getItem("ms-pf") === "1") document.getElementById("runnow").hidden = false;
-} catch (e) {}
-fetch("data.json?" + Date.now(), {cache: "no-store"}).then(r => r.json()).then(D => {
+const PAGE_VERSION = "ca50ffb0";fetch("data.json?" + Date.now(), {cache: "no-store"}).then(r => r.json()).then(D => {
   // Browsers can hold an old copy of this page. data.json is always fresh, so if it names a newer page, load that once.
   if (D.page_version && D.page_version !== PAGE_VERSION) {
     const key = "reloaded-" + D.page_version;
@@ -230,8 +219,8 @@ fetch("data.json?" + Date.now(), {cache: "no-store"}).then(r => r.json()).then(D
   const p = D.p_colom_wins, when = new Date(D.run_ct);
   const hrs = (Date.now() - when) / 36e5, ago = hrs < 1 ? "less than an hour ago" : hrs < 24 ? Math.round(hrs) + (Math.round(hrs) === 1 ? " hour ago" : " hours ago") : Math.round(hrs / 24) + " days ago";
   const st = document.getElementById("stamp");
-  st.textContent = "Updated " + ago + " (" + when.toLocaleString("en-US", {weekday:"short", month:"short", day:"numeric", hour:"numeric", minute:"2-digit", timeZone:"America/Chicago"}) + " CT). Refreshes about 8 AM, noon and 5 PM CT.";
-  if (hrs > 18 && !D.winner) { st.textContent += " This update is older than usual."; st.classList.add("stale"); }
+  st.textContent = "Updated " + ago + " (" + when.toLocaleString("en-US", {weekday:"short", month:"short", day:"numeric", hour:"numeric", minute:"2-digit", timeZone:"America/Chicago"}) + " CT). Refreshes every 30 minutes, 7 AM to 10 PM CT.";
+  if (hrs > 10 && !D.winner) { st.textContent += " This update is older than usual."; st.classList.add("stale"); }
   const sh = document.getElementById("share"), url = "https://tinyurl.com/ms-senate-2026";
   sh.onclick = async () => {
     try { if (navigator.share) { await navigator.share({title:"Mississippi Senate count tracker", text:"Who is likely to win once every ballot is counted", url}); return; } } catch (e) { if (e.name === "AbortError") return; }
