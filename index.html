@@ -212,7 +212,7 @@ svg text.halo{paint-order:stroke;stroke:var(--surface);stroke-width:3px;stroke-l
     <a href="https://www.sos.ms.gov/elections-voting">Mississippi Secretary of State</a> ·
     <a href="https://mississippitoday.org/">Mississippi Today</a> ·
     <a href="https://www.mississippifreepress.org/">Mississippi Free Press</a><br>
-    <span id="pagever">Page version 073afdcc</span>
+    <span id="pagever">Page version 01a47e5e</span>
   </footer>
 </div>
 
@@ -229,12 +229,12 @@ function showTip(e, html){ tip.innerHTML = html; tip.style.opacity = 1;
 function hideTip(){ tip.style.opacity = 0; }
 const widthOf = svg => Math.max(280, svg.node().getBoundingClientRect().width || (svg.node().parentNode.clientWidth - 40));
 
-const PAGE_VERSION = "073afdcc";
+const PAGE_VERSION = "01a47e5e";
 
 function drawLog(L){
   const tb = document.querySelector("#logtbl tbody"), SHOW = 8;
   const when = iso => new Date(iso).toLocaleString("en-US", {weekday:"short", hour:"numeric", minute:"2-digit", timeZone:"America/Chicago"});
-  const who = v => v > 0 ? ["d", "Colom +" + fmt(v)] : v < 0 ? ["r", "Hyde-Smith +" + fmt(-v)] : ["e", "Even"];
+  const who = v => v > 0 ? ["d", "Colom +" + fmt(v)] : v < 0 ? ["r", "Hyde‑Smith +" + fmt(-v)] : ["e", "Even"];
   const cell = v => { const [k, t] = who(v); return `<span class="mk ${k}" aria-hidden="true"></span>${t}`; };
   L.rows.forEach((r, i) => {
     const tr = document.createElement("tr");
