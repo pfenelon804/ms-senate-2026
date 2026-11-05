@@ -196,7 +196,7 @@ button:focus-visible,select:focus-visible,input:focus-visible,th[data-k]:focus-v
     <a href="https://www.sos.ms.gov/elections-voting">Mississippi Secretary of State</a> ·
     <a href="https://mississippitoday.org/">Mississippi Today</a> ·
     <a href="https://www.mississippifreepress.org/">Mississippi Free Press</a><br>
-    <span id="pagever">Page version e91b7748</span>
+    <span id="pagever">Page version 473d931d</span>
   </footer>
 </div>
 
@@ -213,7 +213,7 @@ function showTip(e, html){ tip.innerHTML = html; tip.style.opacity = 1;
 function hideTip(){ tip.style.opacity = 0; }
 const widthOf = svg => Math.max(280, svg.node().getBoundingClientRect().width || (svg.node().parentNode.clientWidth - 40));
 
-const PAGE_VERSION = "e91b7748";
+const PAGE_VERSION = "473d931d";
 // Run-now button: only on PF's own devices (open the page once with ?pf=1; ?pf=0 hides it again). It opens the PC's run page over Tailscale.
 try {
   const q = new URLSearchParams(location.search).get("pf");
@@ -244,9 +244,11 @@ fetch("data.json?" + Date.now(), {cache: "no-store"}).then(r => r.json()).then(D
   document.getElementById("b-dem").style.width = pd + "%";
   document.getElementById("b-gop").style.width = pr + "%";
   document.getElementById("oddsbar").setAttribute("aria-label", `Colom ${pd} percent, Hyde-Smith ${pr} percent`);
-  const fav = p >= 0.5 ? "Colom" : "Hyde-Smith", fp = Math.max(p, 1 - p), inTen = Math.round(fp * 10);
+  const fav = p >= 0.5 ? "Colom" : "Hyde-Smith", fp = Math.max(p, 1 - p);
+  // Out of 100 once 10 would round to "10 of every 10 ... the other 0 in 10".
+  const outOf = Math.round(fp * 10) >= 10 ? 100 : 10, inTen = Math.min(outOf - 1, Math.round(fp * outOf));
   document.getElementById("odds-sub").textContent = D.winner ? `AP has projected ${D.winner} as the winner.` :
-    `The race has not been called. ${fav} comes out ahead in about ${inTen} of every 10 simulated counts. Long shots like the other ${10 - inTen} in 10 do happen.`;
+    `The race has not been called. ${fav} comes out ahead in about ${inTen} of every ${outOf} simulated counts. Long shots like the other ${outOf - inTen} in ${outOf} do happen.`;
   document.getElementById("summary").textContent = D.summary;
   document.getElementById("f-count").textContent = signed(D.current_margin);
   document.getElementById("f-in").textContent = D.percent_in + "%";
