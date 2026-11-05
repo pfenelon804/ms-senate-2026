@@ -84,6 +84,9 @@ svg text.halo{paint-order:stroke;stroke:var(--surface);stroke-width:3px;stroke-l
 .stamp.stale{color:var(--gop)}
 .share{font:inherit;font-size:14px;font-weight:600;color:var(--ink);background:var(--surface);border:1px solid var(--card-border);border-radius:999px;padding:8px 16px;cursor:pointer}
 .share:hover{border-color:var(--axis)}
+.btns{display:flex;gap:8px;flex-wrap:wrap}
+a.share{text-decoration:none;display:inline-block}
+a.share[hidden]{display:none}
 button:focus-visible,select:focus-visible,input:focus-visible,th[data-k]:focus-visible,#tbl tbody tr:focus-visible{outline:2px solid var(--dem);outline-offset:2px}
 .summary{font-size:18px;line-height:1.45;color:var(--ink);margin:4px 0 16px}
 .barwrap{position:relative;margin:12px 0 8px}
@@ -97,7 +100,7 @@ button:focus-visible,select:focus-visible,input:focus-visible,th[data-k]:focus-v
   <header>
     <h1>Mississippi Senate count tracker</h1>
     <p>Who is likely to win the uncalled U.S. Senate race once every ballot is counted.</p>
-    <div class="stamprow"><div class="stamp" id="stamp">Loading...</div><button class="share" id="share" type="button">Share this page</button></div>
+    <div class="stamprow"><div class="stamp" id="stamp">Loading...</div><div class="btns"><a class="share" id="runnow" href="http://100.71.142.94:8790/" target="_blank" rel="noopener" hidden>Run update now</a><button class="share" id="share" type="button">Share this page</button></div></div>
   </header>
 
   <section class="card" aria-labelledby="h-odds">
@@ -193,7 +196,7 @@ button:focus-visible,select:focus-visible,input:focus-visible,th[data-k]:focus-v
     <a href="https://www.sos.ms.gov/elections-voting">Mississippi Secretary of State</a> ·
     <a href="https://mississippitoday.org/">Mississippi Today</a> ·
     <a href="https://www.mississippifreepress.org/">Mississippi Free Press</a><br>
-    <span id="pagever">Page version 41af7da8</span>
+    <span id="pagever">Page version e91b7748</span>
   </footer>
 </div>
 
@@ -210,7 +213,13 @@ function showTip(e, html){ tip.innerHTML = html; tip.style.opacity = 1;
 function hideTip(){ tip.style.opacity = 0; }
 const widthOf = svg => Math.max(280, svg.node().getBoundingClientRect().width || (svg.node().parentNode.clientWidth - 40));
 
-const PAGE_VERSION = "41af7da8";
+const PAGE_VERSION = "e91b7748";
+// Run-now button: only on PF's own devices (open the page once with ?pf=1; ?pf=0 hides it again). It opens the PC's run page over Tailscale.
+try {
+  const q = new URLSearchParams(location.search).get("pf");
+  if (q === "1") localStorage.setItem("ms-pf", "1"); else if (q === "0") localStorage.removeItem("ms-pf");
+  if (localStorage.getItem("ms-pf") === "1") document.getElementById("runnow").hidden = false;
+} catch (e) {}
 fetch("data.json?" + Date.now(), {cache: "no-store"}).then(r => r.json()).then(D => {
   // Browsers can hold an old copy of this page. data.json is always fresh, so if it names a newer page, load that once.
   if (D.page_version && D.page_version !== PAGE_VERSION) {
