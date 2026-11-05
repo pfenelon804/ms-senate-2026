@@ -70,6 +70,12 @@ footer a{color:var(--ink2)}
 #logtbl .where{display:block;font-size:12px;color:var(--muted);white-space:normal;max-width:220px;margin-top:2px}
 .mk{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px;vertical-align:1px}
 .mk.d{background:var(--dem)} .mk.r{background:var(--gop)} .mk.e{background:var(--axis)}
+@media (max-width:560px){
+  #logtbl th:nth-child(5),#logtbl td:nth-child(5){display:none}
+  #logtbl th,#logtbl td{padding:6px 4px;white-space:normal}
+  #logtbl td:first-child{white-space:nowrap}
+  #logtbl .where{white-space:normal;max-width:120px}
+}
 select,input[type=search]{font:inherit;font-size:14px;color:var(--ink);background:var(--page);border:1px solid var(--card-border);border-radius:8px;padding:6px 10px}
 input[type=search]{width:100%;max-width:280px;margin-bottom:4px}
 th[data-k]{cursor:pointer;user-select:none;white-space:nowrap}
@@ -206,7 +212,7 @@ svg text.halo{paint-order:stroke;stroke:var(--surface);stroke-width:3px;stroke-l
     <a href="https://www.sos.ms.gov/elections-voting">Mississippi Secretary of State</a> ·
     <a href="https://mississippitoday.org/">Mississippi Today</a> ·
     <a href="https://www.mississippifreepress.org/">Mississippi Free Press</a><br>
-    <span id="pagever">Page version 7c1668a2</span>
+    <span id="pagever">Page version 073afdcc</span>
   </footer>
 </div>
 
@@ -223,7 +229,7 @@ function showTip(e, html){ tip.innerHTML = html; tip.style.opacity = 1;
 function hideTip(){ tip.style.opacity = 0; }
 const widthOf = svg => Math.max(280, svg.node().getBoundingClientRect().width || (svg.node().parentNode.clientWidth - 40));
 
-const PAGE_VERSION = "7c1668a2";
+const PAGE_VERSION = "073afdcc";
 
 function drawLog(L){
   const tb = document.querySelector("#logtbl tbody"), SHOW = 8;
