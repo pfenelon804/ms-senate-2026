@@ -178,9 +178,10 @@ button:focus-visible,select:focus-visible,input:focus-visible,th[data-k]:focus-v
     <h2 id="h-how">How this works</h2>
     <p class="sub" style="margin-bottom:8px">Three kinds of ballots are still out. For each, the model estimates how many there are, where they are, and which way they lean, then counts them 200,000 different ways to see how often each candidate comes out ahead.</p>
     <ul class="watch">
-      <li><b>Ballots AP still expects</b> (absentee and Election Day ballots not yet counted). Assumed to lean like the votes already counted in the same county, with room to break either way statewide.</li>
-      <li><b>Affidavit (provisional) ballots</b>, cast when a voter's eligibility is questioned at the polls. About 8,000 to 17,000 statewide, roughly half accepted, leaning somewhat more Democratic than their county. Replaced with official county counts as clerks report them.</li>
-      <li><b>Late mail ballots</b> postmarked by Nov. 3 and arriving by Nov. 10. Very few.</li>
+      <li><b>Ballots AP still expects</b> (absentee and Election Day ballots not yet counted). Assumed to lean like the votes already counted in the same county, adjusted by how the batches counted since Election Night have actually leaned, with room to break either way statewide.</li>
+      <li><b>Affidavit (provisional) ballots</b>, cast when a voter's eligibility is questioned at the polls. About 10,000 to 17,000 statewide and about 7 in 10 accepted, based on each county's record in Mississippi's last three federal elections (U.S. Election Assistance Commission data). Assumed to lean somewhat more Democratic than their county. Replaced with official county counts as clerks report them.</li>
+      <li><b>Late mail ballots</b> postmarked by Nov. 3 and arriving by Nov. 10: a share of the about 3,600 the Secretary of State says are still out. Very few.</li>
+      <li><b>The model checks itself.</b> Each time a county reports, the model compares the new votes with what it expected, both how they leaned and how many there were, and adjusts. Early on its starting assumptions carry most of the weight; as more batches come in, the measured results take over.</li>
     </ul>
   </section>
 
@@ -192,7 +193,7 @@ button:focus-visible,select:focus-visible,input:focus-visible,th[data-k]:focus-v
     <a href="https://www.sos.ms.gov/elections-voting">Mississippi Secretary of State</a> ·
     <a href="https://mississippitoday.org/">Mississippi Today</a> ·
     <a href="https://www.mississippifreepress.org/">Mississippi Free Press</a><br>
-    <span id="pagever">Page version 1e491bf9</span>
+    <span id="pagever">Page version 41af7da8</span>
   </footer>
 </div>
 
@@ -209,7 +210,7 @@ function showTip(e, html){ tip.innerHTML = html; tip.style.opacity = 1;
 function hideTip(){ tip.style.opacity = 0; }
 const widthOf = svg => Math.max(280, svg.node().getBoundingClientRect().width || (svg.node().parentNode.clientWidth - 40));
 
-const PAGE_VERSION = "1e491bf9";
+const PAGE_VERSION = "41af7da8";
 fetch("data.json?" + Date.now(), {cache: "no-store"}).then(r => r.json()).then(D => {
   // Browsers can hold an old copy of this page. data.json is always fresh, so if it names a newer page, load that once.
   if (D.page_version && D.page_version !== PAGE_VERSION) {
