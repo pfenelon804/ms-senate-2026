@@ -66,6 +66,10 @@ footer{color:var(--muted);font-size:13px;margin-top:24px}
 footer a{color:var(--ink2)}
 .chart{width:100%;display:block}
 .note{font-size:13px;color:var(--muted);margin-top:8px}
+#logtbl td{vertical-align:top;white-space:nowrap}
+#logtbl .where{display:block;font-size:12px;color:var(--muted);white-space:normal;max-width:220px;margin-top:2px}
+.mk{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px;vertical-align:1px}
+.mk.d{background:var(--dem)} .mk.r{background:var(--gop)} .mk.e{background:var(--axis)}
 select,input[type=search]{font:inherit;font-size:14px;color:var(--ink);background:var(--page);border:1px solid var(--card-border);border-radius:8px;padding:6px 10px}
 input[type=search]{width:100%;max-width:280px;margin-bottom:4px}
 th[data-k]{cursor:pointer;user-select:none;white-space:nowrap}
@@ -120,6 +124,16 @@ svg text.halo{paint-order:stroke;stroke:var(--surface);stroke-width:3px;stroke-l
     <h2 id="h-changed">What changed</h2>
     <p class="sub" id="changed-head"></p>
     <ul class="watch" id="changed"></ul>
+  </section>
+
+  <section class="card" aria-labelledby="h-log" id="log-card" hidden>
+    <h2 id="h-log">New votes as they came in</h2>
+    <p class="sub">Each row is the votes added between two of our checks, newest first. "Batch" is how those new votes split.</p>
+    <div class="tablewrap"><table id="logtbl"><thead><tr>
+      <th scope="col">Seen by (CT)</th><th scope="col">New votes</th><th scope="col">Batch</th><th scope="col">Counted lead after</th><th scope="col">% in</th>
+    </tr></thead><tbody></tbody></table></div>
+    <button class="share" id="log-more" type="button" hidden style="margin-top:10px">Show all</button>
+    <div class="note" id="log-note"></div>
   </section>
 
   <section class="card" aria-labelledby="h-watch">
@@ -192,7 +206,7 @@ svg text.halo{paint-order:stroke;stroke:var(--surface);stroke-width:3px;stroke-l
     <a href="https://www.sos.ms.gov/elections-voting">Mississippi Secretary of State</a> ·
     <a href="https://mississippitoday.org/">Mississippi Today</a> ·
     <a href="https://www.mississippifreepress.org/">Mississippi Free Press</a><br>
-    <span id="pagever">Page version ca50ffb0</span>
+    <span id="pagever">Page version 7c1668a2</span>
   </footer>
 </div>
 
@@ -209,7 +223,26 @@ function showTip(e, html){ tip.innerHTML = html; tip.style.opacity = 1;
 function hideTip(){ tip.style.opacity = 0; }
 const widthOf = svg => Math.max(280, svg.node().getBoundingClientRect().width || (svg.node().parentNode.clientWidth - 40));
 
-const PAGE_VERSION = "ca50ffb0";fetch("data.json?" + Date.now(), {cache: "no-store"}).then(r => r.json()).then(D => {
+const PAGE_VERSION = "7c1668a2";
+
+function drawLog(L){
+  const tb = document.querySelector("#logtbl tbody"), SHOW = 8;
+  const when = iso => new Date(iso).toLocaleString("en-US", {weekday:"short", hour:"numeric", minute:"2-digit", timeZone:"America/Chicago"});
+  const who = v => v > 0 ? ["d", "Colom +" + fmt(v)] : v < 0 ? ["r", "Hyde-Smith +" + fmt(-v)] : ["e", "Even"];
+  const cell = v => { const [k, t] = who(v); return `<span class="mk ${k}" aria-hidden="true"></span>${t}`; };
+  L.rows.forEach((r, i) => {
+    const tr = document.createElement("tr");
+    if (i >= SHOW) tr.hidden = true;
+    const where = r.where.map(w => `${w.n} ${fmt(w.v)}`).join(", ") + (r.more ? `, ${r.more} more` : "");
+    tr.innerHTML = `<td>${when(r.t)}<span class="where">${where}</span></td><td>${fmt(r.new)}</td><td>${cell(r.batch)}</td><td>${cell(r.lead)}</td><td>${r.pct_in}%</td>`;
+    tb.appendChild(tr);
+  });
+  const more = document.getElementById("log-more");
+  if (L.rows.length > SHOW) { more.hidden = false; more.onclick = () => { tb.querySelectorAll("tr[hidden]").forEach(t => t.hidden = false); more.hidden = true; }; }
+  document.getElementById("log-note").textContent = "We check AP's count every 30 minutes (7 AM to 10 PM CT), so one row can hold several county reports; the gray line names the counties with the most new votes. Log starts " +
+    new Date(L.since).toLocaleString("en-US", {month:"short", day:"numeric", hour:"numeric", minute:"2-digit", timeZone:"America/Chicago"}) + " CT.";
+  document.getElementById("log-card").hidden = false;
+}fetch("data.json?" + Date.now(), {cache: "no-store"}).then(r => r.json()).then(D => {
   // Browsers can hold an old copy of this page. data.json is always fresh, so if it names a newer page, load that once.
   if (D.page_version && D.page_version !== PAGE_VERSION) {
     const key = "reloaded-" + D.page_version;
@@ -251,6 +284,7 @@ const PAGE_VERSION = "ca50ffb0";fetch("data.json?" + Date.now(), {cache: "no-sto
     D.changed.items.forEach(t => { const li = document.createElement("li"); li.textContent = t; ch.appendChild(li); });
     document.getElementById("changed-card").hidden = false;
   }
+  if (D.votelog && D.votelog.rows.length) drawLog(D.votelog);
   const watch = document.getElementById("watch");
   D.watch.forEach(t => { const li = document.createElement("li"); li.textContent = t; watch.appendChild(li); });
 
