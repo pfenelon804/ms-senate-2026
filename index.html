@@ -197,8 +197,8 @@ svg text.halo{paint-order:stroke;stroke:var(--surface);stroke-width:3px;stroke-l
     <h2 id="h-how">How this works</h2>
     <p class="sub" style="margin-bottom:8px">Three kinds of ballots are still out. For each, the model estimates how many there are, where they are, and which way they lean, then counts them 200,000 different ways to see how often each candidate comes out ahead.</p>
     <ul class="watch">
-      <li><b>Ballots AP still expects</b> (absentee and Election Day ballots not yet counted). Assumed to lean like the votes already counted in the same county, adjusted by how the batches counted since Election Night have actually leaned, with room to break either way statewide.</li>
-      <li><b>Affidavit (provisional) ballots</b>, cast when a voter's eligibility is questioned at the polls. About 10,000 to 17,000 statewide and about 7 in 10 accepted, based on each county's record in Mississippi's last three federal elections (U.S. Election Assistance Commission data). Assumed to lean somewhat more Democratic than their county. Replaced with official county counts as clerks report them.</li>
+      <li><b>Ballots AP still expects</b> (absentee and Election Day ballots not yet counted). Assumed to lean like the votes already counted in the same county, adjusted by how the batches counted since Election Night have actually leaned, with room to break either way statewide. Where a county official has said how many ballots are left, that number replaces AP's estimate.</li>
+      <li><b>Affidavit (provisional) ballots</b>, cast when a voter's eligibility is questioned at the polls. About 10,000 to 17,000 statewide and about 7 in 10 accepted, based on each county's record in Mississippi's last three federal elections (U.S. Election Assistance Commission data). Assumed to lean somewhat more Democratic than their county. Replaced with official county counts as clerks report them, and not counted twice: AP's estimate already includes most of them.</li>
       <li><b>Late mail ballots</b> postmarked by Nov. 3 and arriving by Nov. 10: a share of the about 3,600 the Secretary of State says are still out. Very few.</li>
       <li><b>The model checks itself.</b> Each time a county reports, the model compares the new votes with what it expected, both how they leaned and how many there were, and adjusts. Early on its starting assumptions carry most of the weight; as more batches come in, the measured results take over.</li>
     </ul>
@@ -212,7 +212,7 @@ svg text.halo{paint-order:stroke;stroke:var(--surface);stroke-width:3px;stroke-l
     <a href="https://www.sos.ms.gov/elections-voting">Mississippi Secretary of State</a> ·
     <a href="https://mississippitoday.org/">Mississippi Today</a> ·
     <a href="https://www.mississippifreepress.org/">Mississippi Free Press</a><br>
-    <span id="pagever">Page version 01a47e5e</span>
+    <span id="pagever">Page version 641ad60a</span>
   </footer>
 </div>
 
@@ -229,7 +229,7 @@ function showTip(e, html){ tip.innerHTML = html; tip.style.opacity = 1;
 function hideTip(){ tip.style.opacity = 0; }
 const widthOf = svg => Math.max(280, svg.node().getBoundingClientRect().width || (svg.node().parentNode.clientWidth - 40));
 
-const PAGE_VERSION = "01a47e5e";
+const PAGE_VERSION = "641ad60a";
 
 function drawLog(L){
   const tb = document.querySelector("#logtbl tbody"), SHOW = 8;
@@ -266,9 +266,10 @@ function drawLog(L){
     try { await navigator.clipboard.writeText(url); sh.textContent = "Link copied"; } catch (e) { sh.textContent = url; }
     setTimeout(() => sh.textContent = "Share this page", 2500);
   };
-  const pd = Math.round(p * 100), pr = 100 - pd;
-  document.getElementById("p-dem").textContent = pd + "%";
-  document.getElementById("p-gop").textContent = pr + "%";
+  // Never show 100% / 0% for an uncalled race: past 99% it reads ">99%" / "<1%".
+  const pd = Math.min(99, Math.max(1, Math.round(p * 100))), pr = 100 - pd;
+  document.getElementById("p-dem").textContent = (p >= 0.995 ? ">" : p <= 0.005 ? "<" : "") + pd + "%";
+  document.getElementById("p-gop").textContent = (p <= 0.005 ? ">" : p >= 0.995 ? "<" : "") + pr + "%";
   document.getElementById("b-dem").style.width = pd + "%";
   document.getElementById("b-gop").style.width = pr + "%";
   document.getElementById("oddsbar").setAttribute("aria-label", `Colom ${pd} percent, Hyde-Smith ${pr} percent`);
